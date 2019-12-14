@@ -101,7 +101,9 @@ IE10、IE11和主流浏览器都支持。
 
   >网页的形式千变万化，你也可以把 <font color="#c7254e">`body`</font> 标签设置为主元素，具体情况集体分析。
 
-	![主元素说明](https://img.cdn.bux.cn/doc-vuer-bux-cn/readme-part.jpg)
+	![主元素说明](https://github.com/userofjack/Vuer/blob/master/readme-part.jpg?raw=true)
+
+> 如果说明图片无法显示，请翻墙查看。
 
 * **不引入配置项**
   上面的代码中，<font color="#c7254e">`RouterConfig`</font> 变量来自于引入的配置项文件 <font color="#c7254e">`config.js`</font> ，也可以不引入配置项文件，也就是把配置项写在实例化语句中：
@@ -385,6 +387,7 @@ Vuer中有一个属性 <font color="#c7254e">`vue`</font> ，用来加载模板�
 * 不需要挂载节点，数据加载完成后Vuer会自动挂载。
 
 * Vuer会在获取到数据之后自动家在数据到模板页中的Vue实例上。
+
 
 * 加载新页面时，Vuer会自动销毁已加载的模板页中的Vue实例。
 
