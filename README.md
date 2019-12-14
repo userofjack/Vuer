@@ -99,7 +99,7 @@ IE10、IE11和主流浏览器都支持。
 
   主元素就是活动的元素，对于网站应用而言，一般顶部是LOGO和导航，中部是主要内容，底部是版权信息。所以切换页面时，头部和尾部一般是不变的，只需要把中部的内容改动即可。而对于app，也是如此。
 
-  >网页的形式千变万化，你也可以把 <font color="#c7254e">`body`</font> 标签设置为主元素，具体情况集体分析。
+  >网页的形式千变万化，你也可以把 <font color="#c7254e">`body`</font> 标签设置为主元素，具体情况具体分析。
 
 	![主元素说明](https://github.com/userofjack/Vuer/blob/master/readme-part.jpg?raw=true)
 
