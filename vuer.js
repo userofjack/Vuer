@@ -201,7 +201,7 @@ Vuer=function (config){
 	Vuer.prototype.run=function(method,pageName){
 		
 		try{
-			var obj=eval('this.config.pages.'+pageName+'.'+method);
+			var obj=eval('this.config.pages["'+pageName+'"].'+method);
 		}
 		catch(e){}
 		
@@ -293,7 +293,9 @@ Vuer=function (config){
 
 		}
 
-		this.fillHTML(this.byId(this.config.context),this.cache.html);
+		this.fillHTML(this.byId(this.config.context),htmlCode);
+		
+		scroll(0,0);
 
 		if(!this.config.debug){
 			console.clear();
