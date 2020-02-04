@@ -1,13 +1,13 @@
 /*
   Vuer路由模块
   
-  https://vuer.bux.cn
+  https://github.com/userofjack/Vuer
   
-  ©2017-2019 Bux. All rights reserved.
+  ©2017-2020 Bux. All rights reserved.
   
   遵循Apache开源协议。
 
-  V1.0.0
+  V1.0.1
 */
 
 Vuer=function (config){
@@ -81,16 +81,16 @@ Vuer=function (config){
 	Vuer.prototype.queryToStr=function(query){
 		var queryStr='';
 		var start=true;
-		for(var Key in query){
+		for(var key in query){
 			if(!start){
 				queryStr+='&';
 			}
 			else{
 				start=false;
 			}
-			queryStr+=Key;
-			if(!this.isEmpty(query[Key])){
-				queryStr+='='+query[Key];
+			queryStr+=key;
+			if(!this.isEmpty(query[key])){
+				queryStr+='='+query[key];
 			}
 		}
 		return queryStr;
@@ -234,6 +234,7 @@ Vuer=function (config){
 			for(var key in dataObj){
 				this.vue[key]=dataObj[key];
 			}
+			this.vue.$mount('#'+this.config.content);
 		}
 		
 		if(this.isEmpty(this.config.pages[this.nowPage].preview)||(!this.isEmpty(this.config.pages[this.nowPage].preview)&&!this.config.pages[this.nowPage].preview)){
@@ -293,7 +294,7 @@ Vuer=function (config){
 
 		}
 
-		this.fillHTML(this.byId(this.config.context),htmlCode);
+		this.fillHTML(this.byId(this.config.content),htmlCode);
 		
 		scroll(0,0);
 
@@ -312,7 +313,6 @@ Vuer=function (config){
 				}
 			}
 
-			this.vue.$mount('#'+this.config.context);
 		}
 		this.bridge=false;
 
@@ -335,6 +335,9 @@ Vuer=function (config){
 	}
 	
 	Vuer.prototype.load=function(pageName,query){
+		if(this.run('action.leave',this.nowPage)==false){
+			return false;
+		}
 		if(this.run('action.next',pageName)==false){
 			return false;
 		}
