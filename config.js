@@ -1,6 +1,6 @@
 var RouterConfig={
 	debug:true,
-	siteName:" - 你的站点名称",
+	siteName:" - 站点名称",
 	field:"space",
 	default:"index",
 	context:"主元素的id",
@@ -15,7 +15,14 @@ var RouterConfig={
 		"404":{
 			title:"页面不存在",
 			path:"404.html",
-		},
+		}
+	},
+	
+	aliases:{
+		"test":{
+			path:"",
+			url:""
+		}
 	},
 	
 	auth:{

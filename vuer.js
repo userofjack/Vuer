@@ -286,7 +286,7 @@ Vuer=function (config){
 				var scriptPath=this.config.pages[this.nowPage].js[key];
 				var scriptElement=document.createElement('script');
 				scriptElement.type='text/javaScript';
-				scriptElement.src=scriptPath;
+				scriptElement.src=script3;
 				scriptElement.id='VuerRuntime_js_'+scriptNumber;
 				document.getElementsByTagName('head')[0].appendChild(scriptElement);
 				scriptNumber++;
@@ -366,15 +366,22 @@ Vuer=function (config){
 				break;
 			}
 		}
-		if(typeof this.config.pages[pageName]!='undefined'&&this.isSet(this.config.pages[pageName].jump)){
-			pageName=this.config.pages[pageName].jump;
+		/*coding*/
+		if(typeof this.config.aliases[pageName]!='undefined'){
+			if(!this.isEmpty(this.config.aliases[pageName].path)){
+				this.jump(this.config.aliases[pageName].path);
+				return true;
+			}
+			if(!this.isEmpty(this.config.aliases[pageName].url)){
+				window.location.href=this.config.aliases[pageName].url;
+				return true;
+			}
 		}
-
-
+		
 		if(typeof this.config.pages[pageName]=='undefined'){
 			pageName='404';
 		}
-		
+
 		if(!this.isSet(this.config.pages[pageName].loading)||this.config.pages[pageName].loading){
 			this.run('loading.start',pageName);
 		}
