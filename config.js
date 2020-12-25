@@ -1,6 +1,7 @@
 var RouterConfig={
 	debug:true,
 	siteName:" - 站点名称",
+	mode:"",
 	field:"space",
 	default:"index",
 	context:"主元素的id",
@@ -27,12 +28,12 @@ var RouterConfig={
 	
 	auth:{
 		state:false,
-		pagenName:"login",
+		start:"login",
 		success:function(){
 			
 		},
 		outRule:[
-			"404",
+			"无需鉴权的页面名称",
 		]
 	},
 	

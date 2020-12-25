@@ -3,11 +3,11 @@
   
   https://github.com/userofjack/Vuer
   
-  ©2017-2020 Bux. All rights reserved.
+  ©2017-2021 Bux. All rights reserved.
   
   遵循Apache开源协议。
 
-  V1.0.1
+  V1.1.0
 */
 
 Vuer=function (config){
@@ -52,7 +52,7 @@ Vuer=function (config){
 		return document.getElementById(idName);
 	}
 	
-	Vuer.prototype.jump=function(href){
+	Vuer.prototype.open=function(href){
 		if(!arguments[0]){
 			return false;
 		}
@@ -62,7 +62,7 @@ Vuer=function (config){
 		else{
 			var pageName=href;
 		}
-		this.load(pageName,this.getRequest(href));
+		return this.load(pageName,this.getRequest(href));
 	}
 	
 	Vuer.prototype.isSet=function(value){
@@ -191,7 +191,7 @@ Vuer=function (config){
 	}
 		
 	Vuer.prototype.ajaxClose=function(ajaxToken){
-		if(ajaxToken!==null){
+		if(ajaxToken!==null&&typeof ajaxToken !='undefined'&&this.isSet(ajaxToken['cancel'])){
 			ajaxToken.cancel();
 		}
 		this.ajaxLock.page.ajaxToken=null;
@@ -335,6 +335,13 @@ Vuer=function (config){
 	}
 	
 	Vuer.prototype.load=function(pageName,query){
+		if(this.isEmpty(pageName)){
+			return false;
+		}
+		pageName=pageName.replace(/[^a-zA-Z0-9\-_\.\/]/g, '');
+		if(this.isEmpty(pageName)){
+			return false;
+		}
 		if(this.run('action.leave',this.nowPage)==false){
 			return false;
 		}
@@ -348,6 +355,20 @@ Vuer=function (config){
 		this.ajaxClose(this.ajaxLock.data.ajaxToken);
 		this.ajaxLock.data.state=false;
 		this.ajaxLock.page.state=false;
+		
+		if(typeof this.config.aliases[pageName]!='undefined'){
+			if(!this.isEmpty(this.config.aliases[pageName].path)){
+				this.open(this.config.aliases[pageName].path);
+			}
+			else if(!this.isEmpty(this.config.aliases[pageName].url)){
+				window.location.href=this.config.aliases[pageName].url;
+			}
+			return false;
+		}
+		else if(typeof this.config.pages[pageName]=='undefined'){
+			pageName='404';
+		}
+
 
 		if(this.vue!=null){
 			this.vue.$destroy();
@@ -366,28 +387,16 @@ Vuer=function (config){
 				break;
 			}
 		}
-		/*coding*/
-		if(typeof this.config.aliases[pageName]!='undefined'){
-			if(!this.isEmpty(this.config.aliases[pageName].path)){
-				this.jump(this.config.aliases[pageName].path);
-				return true;
-			}
-			if(!this.isEmpty(this.config.aliases[pageName].url)){
-				window.location.href=this.config.aliases[pageName].url;
-				return true;
-			}
-		}
-		
-		if(typeof this.config.pages[pageName]=='undefined'){
-			pageName='404';
-		}
 
 		if(!this.isSet(this.config.pages[pageName].loading)||this.config.pages[pageName].loading){
 			this.run('loading.start',pageName);
 		}
 		if(this.config.auth.state&&this.getCookie('AuthToken')==null&&this.config.auth.outRule.indexOf(pageName)==-1){
-			this.load(this.config.auth.pageName,query);
+			this.load(this.config.auth.start,query);
 			return false;
+		}
+		else if(this.isEmpty(this.config.pages[pageName].path)){
+			pagePath=this.config.templatePath+pageName+'.html';
 		}
 		else{
 			pagePath=this.config.templatePath+this.config.pages[pageName].path;
@@ -445,6 +454,7 @@ Vuer=function (config){
 				}
 			});		
 		}
+		return true;
 	}
 
 	Vuer.prototype.initial=function(){
@@ -459,17 +469,19 @@ Vuer=function (config){
 			this.load(this.getQuery(this.config.field),this.getRequest());
 		}
 		var that=this;
-		window.addEventListener("popstate",function(){
-			if(that.run('action.last',that.nowPage)==false){
-				return false;
-			}
-			that.load(that.getQuery(that.config.field),that.getRequest());
-		},false);
-		Vue.prototype.jump=window.jump=function(href){
+		setTimeout(function(){
+			window.addEventListener("popstate",function(){
+				if(that.run('action.last',that.nowPage)==false){
+					return false;
+				}
+				that.load(that.getQuery(that.config.field),that.getRequest());
+			},false);
+		},100);
+		Vue.prototype.open=window.open=function(href){
 			if(!arguments[0]){
 				return false;
 			}
-			that.jump(href);
+			that.open(href);
 		};
 		Vue.prototype.setTitle=window.setTitle=function(pageTitle,siteName){
 			var pageTitle=arguments[0] || that.config.pages[that.nowPage].title;
