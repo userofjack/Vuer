@@ -37,6 +37,7 @@ Vuer=function (config){
 		html:null,
 		data:false,
 	}
+	this.pageCount=1;
 	this.bridge=false;
 	this.bigBridge={};
 	this.vue=null;
@@ -265,14 +266,12 @@ Vuer=function (config){
 		}
 	}
 
-	Vuer.prototype.pageDeal=function(htmlCode,ajaxToken){
-		var ajaxToken=arguments[1] || null;
+	Vuer.prototype.pageDeal=function(htmlCode,ajaxToken,noLog){
 		if(arguments[0]&&ajaxToken!==this.ajaxLock.page.ajaxToken){
 			return false;
 		}
 		var pageQuery='';
 		pageQuery='?'+this.queryToStr(this.ajaxLock.page.query);
-		var htmlCode=arguments[0] || this.cache.html;
 		this.nowPage=this.ajaxLock.page.name;
 		this.ajaxLock.page.ajaxToken=null;
 		this.ajaxLock.page.name='';
@@ -322,7 +321,10 @@ Vuer=function (config){
 		else{
 			this.setTitle();
 		}
-		history.pushState(null,'',pageQuery);
+		if(!noLog){
+			this.pageCount++;
+			history.pushState(this.pageCount,'',pageQuery);
+		}
 		if(!this.isEmpty(this.config.pages[this.nowPage].preview)&&this.config.pages[this.nowPage].preview){
 			if(!this.isSet(this.config.pages[this.nowPage].loading)||this.config.pages[this.nowPage].loading){
 				this.run('loading.close',this.nowPage);
@@ -334,7 +336,11 @@ Vuer=function (config){
 		}
 	}
 	
-	Vuer.prototype.load=function(pageName,query){
+	Vuer.prototype.load=function(pageName,query,noLog){
+		if(!arguments[2]){
+			var noLog=false;
+		}
+
 		if(this.isEmpty(pageName)){
 			return false;
 		}
@@ -410,7 +416,7 @@ Vuer=function (config){
 		
 		var cancelToken=axios.CancelToken;
 		if(pageName==this.nowPage&&this.cache.html!=null&&this.isEmpty(this.config.pages[pageName].data)){
-			this.pageDeal();
+			this.pageDeal(this.cache.html,null,true);
 		}
 		else{
 			this.ajaxLock.page.ajaxToken=cancelToken.source();
@@ -421,7 +427,7 @@ Vuer=function (config){
 				cancelToken:this.ajaxLock.page.ajaxToken.token
 			})
 			.then(function(response){
-				that.pageDeal(response.data,that.ajaxLock.page.ajaxToken)
+				that.pageDeal(response.data,that.ajaxLock.page.ajaxToken,noLog)
 			})
 			.catch(function (e) {
 				
@@ -463,18 +469,38 @@ Vuer=function (config){
 		}
 
 		if(!this.getQuery(this.config.field)){
-			this.load(this.config.default,this.getRequest());
+			this.load(this.config.default,this.getRequest(),true);
 		}
 		else{
-			this.load(this.getQuery(this.config.field),this.getRequest());
+			this.load(this.getQuery(this.config.field),this.getRequest(),true);
 		}
 		var that=this;
 		setTimeout(function(){
 			window.addEventListener("popstate",function(){
+				
+				var noLog=true;
+				var nextPageId=history.state;
+				var nowPageId=that.pageCount;
+				if(nextPageId==null){
+					nextPageId=1;
+				}
 				if(that.run('action.last',that.nowPage)==false){
 					return false;
 				}
-				that.load(that.getQuery(that.config.field),that.getRequest());
+				if(nextPageId>=1){
+					if(nextPageId>=nowPageId){
+						that.pageCount=nextPageId;
+					}
+					else{
+						that.pageCount=that.pageCount-1;
+					}
+					if(!that.getQuery(that.config.field)){
+						that.load(that.config.default,that.getRequest(),noLog);
+					}
+					else{
+						that.load(that.getQuery(that.config.field),that.getRequest(),noLog);
+					}
+				}
 			},false);
 		},100);
 		Vue.prototype.open=window.open=function(href){

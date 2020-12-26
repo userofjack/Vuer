@@ -21,8 +21,8 @@ var RouterConfig={
 	
 	aliases:{
 		"test":{
-			path:"",
-			url:""
+			path:"需要跳转的路径",
+			url:"需要跳转的站外URL"
 		}
 	},
 	
