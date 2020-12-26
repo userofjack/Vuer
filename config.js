@@ -1,6 +1,7 @@
 var RouterConfig={
 	debug:true,
-	siteName:" - 你的站点名称",
+	siteName:" - 站点名称",
+	mode:"",
 	field:"space",
 	default:"index",
 	context:"主元素的id",
@@ -15,17 +16,24 @@ var RouterConfig={
 		"404":{
 			title:"页面不存在",
 			path:"404.html",
-		},
+		}
+	},
+	
+	aliases:{
+		"test":{
+			path:"需要跳转的路径",
+			url:"需要跳转的站外URL"
+		}
 	},
 	
 	auth:{
 		state:false,
-		pagenName:"login",
+		start:"login",
 		success:function(){
 			
 		},
 		outRule:[
-			"404",
+			"无需鉴权的页面名称",
 		]
 	},
 	

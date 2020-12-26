@@ -3,11 +3,11 @@
   
   https://github.com/userofjack/Vuer
   
-  ©2017-2020 Bux. All rights reserved.
+  ©2017-2021 Bux. All rights reserved.
   
   遵循Apache开源协议。
 
-  V1.0.1
+  V1.1.0
 */
 
 Vuer=function (config){
@@ -37,6 +37,7 @@ Vuer=function (config){
 		html:null,
 		data:false,
 	}
+	this.pageCount=1;
 	this.bridge=false;
 	this.bigBridge={};
 	this.vue=null;
@@ -52,7 +53,7 @@ Vuer=function (config){
 		return document.getElementById(idName);
 	}
 	
-	Vuer.prototype.jump=function(href){
+	Vuer.prototype.open=function(href){
 		if(!arguments[0]){
 			return false;
 		}
@@ -62,7 +63,7 @@ Vuer=function (config){
 		else{
 			var pageName=href;
 		}
-		this.load(pageName,this.getRequest(href));
+		return this.load(pageName,this.getRequest(href));
 	}
 	
 	Vuer.prototype.isSet=function(value){
@@ -191,7 +192,7 @@ Vuer=function (config){
 	}
 		
 	Vuer.prototype.ajaxClose=function(ajaxToken){
-		if(ajaxToken!==null){
+		if(ajaxToken!==null&&typeof ajaxToken !='undefined'&&this.isSet(ajaxToken['cancel'])){
 			ajaxToken.cancel();
 		}
 		this.ajaxLock.page.ajaxToken=null;
@@ -265,14 +266,12 @@ Vuer=function (config){
 		}
 	}
 
-	Vuer.prototype.pageDeal=function(htmlCode,ajaxToken){
-		var ajaxToken=arguments[1] || null;
+	Vuer.prototype.pageDeal=function(htmlCode,ajaxToken,noLog){
 		if(arguments[0]&&ajaxToken!==this.ajaxLock.page.ajaxToken){
 			return false;
 		}
 		var pageQuery='';
 		pageQuery='?'+this.queryToStr(this.ajaxLock.page.query);
-		var htmlCode=arguments[0] || this.cache.html;
 		this.nowPage=this.ajaxLock.page.name;
 		this.ajaxLock.page.ajaxToken=null;
 		this.ajaxLock.page.name='';
@@ -286,7 +285,7 @@ Vuer=function (config){
 				var scriptPath=this.config.pages[this.nowPage].js[key];
 				var scriptElement=document.createElement('script');
 				scriptElement.type='text/javaScript';
-				scriptElement.src=scriptPath;
+				scriptElement.src=script3;
 				scriptElement.id='VuerRuntime_js_'+scriptNumber;
 				document.getElementsByTagName('head')[0].appendChild(scriptElement);
 				scriptNumber++;
@@ -322,7 +321,10 @@ Vuer=function (config){
 		else{
 			this.setTitle();
 		}
-		history.pushState(null,'',pageQuery);
+		if(!noLog){
+			this.pageCount++;
+			history.pushState(this.pageCount,'',pageQuery);
+		}
 		if(!this.isEmpty(this.config.pages[this.nowPage].preview)&&this.config.pages[this.nowPage].preview){
 			if(!this.isSet(this.config.pages[this.nowPage].loading)||this.config.pages[this.nowPage].loading){
 				this.run('loading.close',this.nowPage);
@@ -334,7 +336,18 @@ Vuer=function (config){
 		}
 	}
 	
-	Vuer.prototype.load=function(pageName,query){
+	Vuer.prototype.load=function(pageName,query,noLog){
+		if(!arguments[2]){
+			var noLog=false;
+		}
+
+		if(this.isEmpty(pageName)){
+			return false;
+		}
+		pageName=pageName.replace(/[^a-zA-Z0-9\-_\.\/]/g, '');
+		if(this.isEmpty(pageName)){
+			return false;
+		}
 		if(this.run('action.leave',this.nowPage)==false){
 			return false;
 		}
@@ -348,6 +361,20 @@ Vuer=function (config){
 		this.ajaxClose(this.ajaxLock.data.ajaxToken);
 		this.ajaxLock.data.state=false;
 		this.ajaxLock.page.state=false;
+		
+		if(typeof this.config.aliases[pageName]!='undefined'){
+			if(!this.isEmpty(this.config.aliases[pageName].path)){
+				this.open(this.config.aliases[pageName].path);
+			}
+			else if(!this.isEmpty(this.config.aliases[pageName].url)){
+				window.location.href=this.config.aliases[pageName].url;
+			}
+			return false;
+		}
+		else if(typeof this.config.pages[pageName]=='undefined'){
+			pageName='404';
+		}
+
 
 		if(this.vue!=null){
 			this.vue.$destroy();
@@ -366,21 +393,16 @@ Vuer=function (config){
 				break;
 			}
 		}
-		if(typeof this.config.pages[pageName]!='undefined'&&this.isSet(this.config.pages[pageName].jump)){
-			pageName=this.config.pages[pageName].jump;
-		}
 
-
-		if(typeof this.config.pages[pageName]=='undefined'){
-			pageName='404';
-		}
-		
 		if(!this.isSet(this.config.pages[pageName].loading)||this.config.pages[pageName].loading){
 			this.run('loading.start',pageName);
 		}
 		if(this.config.auth.state&&this.getCookie('AuthToken')==null&&this.config.auth.outRule.indexOf(pageName)==-1){
-			this.load(this.config.auth.pageName,query);
+			this.load(this.config.auth.start,query);
 			return false;
+		}
+		else if(this.isEmpty(this.config.pages[pageName].path)){
+			pagePath=this.config.templatePath+pageName+'.html';
 		}
 		else{
 			pagePath=this.config.templatePath+this.config.pages[pageName].path;
@@ -394,7 +416,7 @@ Vuer=function (config){
 		
 		var cancelToken=axios.CancelToken;
 		if(pageName==this.nowPage&&this.cache.html!=null&&this.isEmpty(this.config.pages[pageName].data)){
-			this.pageDeal();
+			this.pageDeal(this.cache.html,null,true);
 		}
 		else{
 			this.ajaxLock.page.ajaxToken=cancelToken.source();
@@ -405,7 +427,7 @@ Vuer=function (config){
 				cancelToken:this.ajaxLock.page.ajaxToken.token
 			})
 			.then(function(response){
-				that.pageDeal(response.data,that.ajaxLock.page.ajaxToken)
+				that.pageDeal(response.data,that.ajaxLock.page.ajaxToken,noLog)
 			})
 			.catch(function (e) {
 				
@@ -438,6 +460,7 @@ Vuer=function (config){
 				}
 			});		
 		}
+		return true;
 	}
 
 	Vuer.prototype.initial=function(){
@@ -446,23 +469,45 @@ Vuer=function (config){
 		}
 
 		if(!this.getQuery(this.config.field)){
-			this.load(this.config.default,this.getRequest());
+			this.load(this.config.default,this.getRequest(),true);
 		}
 		else{
-			this.load(this.getQuery(this.config.field),this.getRequest());
+			this.load(this.getQuery(this.config.field),this.getRequest(),true);
 		}
 		var that=this;
-		window.addEventListener("popstate",function(){
-			if(that.run('action.last',that.nowPage)==false){
-				return false;
-			}
-			that.load(that.getQuery(that.config.field),that.getRequest());
-		},false);
-		Vue.prototype.jump=window.jump=function(href){
+		setTimeout(function(){
+			window.addEventListener("popstate",function(){
+				
+				var noLog=true;
+				var nextPageId=history.state;
+				var nowPageId=that.pageCount;
+				if(nextPageId==null){
+					nextPageId=1;
+				}
+				if(that.run('action.last',that.nowPage)==false){
+					return false;
+				}
+				if(nextPageId>=1){
+					if(nextPageId>=nowPageId){
+						that.pageCount=nextPageId;
+					}
+					else{
+						that.pageCount=that.pageCount-1;
+					}
+					if(!that.getQuery(that.config.field)){
+						that.load(that.config.default,that.getRequest(),noLog);
+					}
+					else{
+						that.load(that.getQuery(that.config.field),that.getRequest(),noLog);
+					}
+				}
+			},false);
+		},100);
+		Vue.prototype.open=window.open=function(href){
 			if(!arguments[0]){
 				return false;
 			}
-			that.jump(href);
+			that.open(href);
 		};
 		Vue.prototype.setTitle=window.setTitle=function(pageTitle,siteName){
 			var pageTitle=arguments[0] || that.config.pages[that.nowPage].title;
