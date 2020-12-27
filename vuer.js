@@ -7,7 +7,7 @@
   
   遵循Apache开源协议。
 
-  V1.1.0
+  V1.1.1
 */
 
 Vuer=function (config){
@@ -53,7 +53,7 @@ Vuer=function (config){
 		return document.getElementById(idName);
 	}
 	
-	Vuer.prototype.open=function(href){
+	Vuer.prototype.go=function(href){
 		if(!arguments[0]){
 			return false;
 		}
@@ -364,7 +364,7 @@ Vuer=function (config){
 		
 		if(typeof this.config.aliases[pageName]!='undefined'){
 			if(!this.isEmpty(this.config.aliases[pageName].path)){
-				this.open(this.config.aliases[pageName].path);
+				this.go(this.config.aliases[pageName].path);
 			}
 			else if(!this.isEmpty(this.config.aliases[pageName].url)){
 				window.location.href=this.config.aliases[pageName].url;
@@ -503,11 +503,11 @@ Vuer=function (config){
 				}
 			},false);
 		},100);
-		Vue.prototype.open=window.open=function(href){
+		Vue.prototype.go=window.go=function(href){
 			if(!arguments[0]){
 				return false;
 			}
-			that.open(href);
+			that.go(href);
 		};
 		Vue.prototype.setTitle=window.setTitle=function(pageTitle,siteName){
 			var pageTitle=arguments[0] || that.config.pages[that.nowPage].title;
