@@ -7,7 +7,7 @@
   
   遵循Apache开源协议。
 
-  V1.1.1
+  V1.1.2
 */
 
 Vuer=function (config){
@@ -187,6 +187,7 @@ Vuer=function (config){
 			runtime.id='VuerRuntime';
 			runtime.innerHTML=route_scriptCode;
 			document.body.appendChild(runtime);
+
 		}
 		
 	}
@@ -342,6 +343,7 @@ Vuer=function (config){
 		}
 
 		if(this.isEmpty(pageName)){
+
 			return false;
 		}
 		pageName=pageName.replace(/[^a-zA-Z0-9\-_\.\/]/g, '');
@@ -397,10 +399,15 @@ Vuer=function (config){
 		if(!this.isSet(this.config.pages[pageName].loading)||this.config.pages[pageName].loading){
 			this.run('loading.start',pageName);
 		}
-		if(this.config.auth.state&&this.getCookie('AuthToken')==null&&this.config.auth.outRule.indexOf(pageName)==-1){
+		if(this.config.auth.state&&this.isEmpty(this.getCookie(this.config.auth.key))&&this.config.auth.outRule.indexOf(pageName)==-1){
 			this.load(this.config.auth.start,query);
 			return false;
 		}
+		if(this.config.auth.state&&!this.isEmpty(this.getCookie('AuthToken'))&&pageName==this.config.auth.start){
+			this.load(this.config.default,query);
+			return false;
+		}
+
 		else if(this.isEmpty(this.config.pages[pageName].path)){
 			pagePath=this.config.templatePath+pageName+'.html';
 		}
@@ -464,7 +471,7 @@ Vuer=function (config){
 	}
 
 	Vuer.prototype.initial=function(){
-		if(!this.config.auth.state||this.getCookie('VuerAuthToken')!=null){
+		if(this.config.auth.state&&!this.isEmpty(this.getCookie(this.config.auth.key))){
 			this.config.auth.success();
 		}
 
@@ -480,6 +487,7 @@ Vuer=function (config){
 				
 				var noLog=true;
 				var nextPageId=history.state;
+
 				var nowPageId=that.pageCount;
 				if(nextPageId==null){
 					nextPageId=1;

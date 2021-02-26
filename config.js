@@ -28,6 +28,7 @@ var RouterConfig={
 	
 	auth:{
 		state:false,
+		key:'AuthToken',
 		start:"login",
 		success:function(){
 			
