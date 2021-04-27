@@ -7,7 +7,7 @@
   
   遵循Apache开源协议。
 
-  V1.1.2
+  V1.1.3
 */
 
 Vuer=function (config){
@@ -403,7 +403,7 @@ Vuer=function (config){
 			this.load(this.config.auth.start,query);
 			return false;
 		}
-		if(this.config.auth.state&&!this.isEmpty(this.getCookie('AuthToken'))&&pageName==this.config.auth.start){
+		if(this.config.auth.state&&!this.isEmpty(this.getCookie(this.config.auth.key))&&pageName==this.config.auth.start){
 			this.load(this.config.default,query);
 			return false;
 		}
