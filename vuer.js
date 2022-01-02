@@ -7,7 +7,7 @@
   
   遵循Apache开源协议。
 
-  V1.1.3
+  V1.2.0
 */
 
 Vuer=function (config){
@@ -45,7 +45,7 @@ Vuer=function (config){
 	Vuer.prototype.byId=function(idName,closeError){
 		var closeError=arguments[1] || false;
 		if(!document.getElementById(idName)){
-			if(this.config.debug&&!closeError){
+			if(!closeError){
 				console.log('%cById(\''+idName+'\') Error','color:red');
 			}
 			return false;
@@ -187,7 +187,6 @@ Vuer=function (config){
 			runtime.id='VuerRuntime';
 			runtime.innerHTML=route_scriptCode;
 			document.body.appendChild(runtime);
-
 		}
 		
 	}
@@ -244,7 +243,7 @@ Vuer=function (config){
 		}
 	}
 	
-	Vuer.prototype.dataDeal=function(jsonObj,ajaxToken){
+	Vuer.prototype.dataDeal=function(jsonObj,ajaxToken,dataUrl){
 		if(ajaxToken!==this.ajaxLock.data.ajaxToken){
 			return false;
 		}
@@ -257,7 +256,7 @@ Vuer=function (config){
 			this.cache.data=jsonObj;
 		}
 		else{
-			if(!this.isSet(this.config.pages[this.nowPage].loading)||this.config.pages[this.nowPage].loading){
+			console.log('%c<Vuer> Data form "'+dataUrl+'" is not JSON ossbject.','color:red');			if(!this.isSet(this.config.pages[this.nowPage].loading)||this.config.pages[this.nowPage].loading){
 				this.run('loading.failed',this.nowPage);
 			}
 			return false;
@@ -343,7 +342,6 @@ Vuer=function (config){
 		}
 
 		if(this.isEmpty(pageName)){
-
 			return false;
 		}
 		pageName=pageName.replace(/[^a-zA-Z0-9\-_\.\/]/g, '');
@@ -407,7 +405,6 @@ Vuer=function (config){
 			this.load(this.config.default,query);
 			return false;
 		}
-
 		else if(this.isEmpty(this.config.pages[pageName].path)){
 			pagePath=this.config.templatePath+pageName+'.html';
 		}
@@ -425,6 +422,10 @@ Vuer=function (config){
 		if(pageName==this.nowPage&&this.cache.html!=null&&this.isEmpty(this.config.pages[pageName].data)){
 			this.pageDeal(this.cache.html,null,true);
 		}
+		else if(this.isSet(this.config.pages[pageName].fill)){
+			this.ajaxLock.page.ajaxToken=new Date().getTime();
+			this.pageDeal(this.config.pages[pageName].fill,this.ajaxLock.page.ajaxToken,noLog);
+		}
 		else{
 			this.ajaxLock.page.ajaxToken=cancelToken.source();
 			var that=this;
@@ -437,10 +438,7 @@ Vuer=function (config){
 				that.pageDeal(response.data,that.ajaxLock.page.ajaxToken,noLog)
 			})
 			.catch(function (e) {
-				
-				if(that.config.debug){
-					console.log(e);
-				}
+				console.log(e);
 				if(!that.isSet(that.config.pages[pageName].loading)||that.config.pages[pageName].loading){
 					that.run('loading.failed',pageName);
 				}
@@ -450,18 +448,17 @@ Vuer=function (config){
 			this.ajaxLock.data.name=pageName;
 			this.ajaxLock.data.ajaxToken=cancelToken.source();
 			var that=this;
+			var dataUrl=this.config.dataPath+this.config.pages[pageName].data+pageQuery;
 
 			axios
-			.get(this.setCache(this.config.dataPath+this.config.pages[pageName].data+pageQuery,pageName,'data'),{
+			.get(this.setCache(dataUrl,pageName,'data'),{
 				cancelToken:this.ajaxLock.data.ajaxToken.token
 			})
 			.then(function(response){
-				that.dataDeal(response.data,that.ajaxLock.data.ajaxToken)
+				that.dataDeal(response.data,that.ajaxLock.data.ajaxToken,dataUrl)
 			})
 			.catch(function (e) {
-				if(that.config.debug){
-					console.log(e);
-				}
+				console.log(e);
 				if(!that.isSet(that.config.pages[pageName].loading)||that.config.pages[pageName].loading){
 					that.run('loading.failed',pageName);
 				}
@@ -487,7 +484,6 @@ Vuer=function (config){
 				
 				var noLog=true;
 				var nextPageId=history.state;
-
 				var nowPageId=that.pageCount;
 				if(nextPageId==null){
 					nextPageId=1;
