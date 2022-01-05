@@ -3,7 +3,7 @@
   
   https://github.com/userofjack/Vuer
   
-  ©2017-2021 Bux. All rights reserved.
+  ©2017-2022 Bux. All rights reserved.
   
   遵循Apache开源协议。
 
